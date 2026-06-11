@@ -1,0 +1,14 @@
+{
+  "eyebrow": "Enterprise SSO",
+  "title": "Sign in to DeepChat",
+  "description": "Use your organization LDAP account to complete unified authentication. The login page opens in your system browser, then DeepChat continues after the sign-in starts.",
+  "actions": {
+    "signIn": "Sign in with LDAP",
+    "opening": "Opening..."
+  },
+  "errors": {
+    "missingUrl": "LDAP login URL is not configured. Contact your administrator.",
+    "openFailed": "Unable to open the LDAP login page. Try again later or contact your administrator."
+  },
+  "footer": "The LDAP login URL is provided at package time with VITE_LDAP_LOGIN_URL."
+}

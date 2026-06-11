@@ -6,12 +6,13 @@ import {
   GUIDED_ONBOARDING_RESUME_REQUESTED_EVENT,
   GUIDED_ONBOARDING_RESUME_STORAGE_KEY
 } from '@/lib/onboardingResume'
+import { LDAP_LOGIN_SESSION_KEY } from '@/lib/ldapLogin'
 
 const DEV_WELCOME_OVERRIDE_KEY = '__deepchat_dev_force_welcome'
 
 const mountApp = async (options?: {
   initComplete?: boolean
-  routeName?: 'chat' | 'welcome'
+  routeName?: 'chat' | 'welcome' | 'ldap-login'
   hasActiveSession?: boolean
   pageRouteName?: 'newThread' | 'chat'
   chatSessionId?: string | null
@@ -36,25 +37,29 @@ const mountApp = async (options?: {
   const onboardingCurrentStepId = options?.onboardingCurrentStepId ?? null
   const route = reactive({
     name: routeName,
-    path: routeName === 'welcome' ? '/welcome' : '/chat',
-    fullPath: routeName === 'welcome' ? '/welcome' : '/chat'
+    path:
+      routeName === 'welcome' ? '/welcome' : routeName === 'ldap-login' ? '/ldap-login' : '/chat',
+    fullPath:
+      routeName === 'welcome' ? '/welcome' : routeName === 'ldap-login' ? '/ldap-login' : '/chat'
   })
   const currentRoute = ref(route)
 
-  const setRoute = (name: 'chat' | 'welcome') => {
+  const setRoute = (name: 'chat' | 'welcome' | 'ldap-login') => {
     route.name = name
-    route.path = name === 'welcome' ? '/welcome' : '/chat'
+    route.path = name === 'welcome' ? '/welcome' : name === 'ldap-login' ? '/ldap-login' : '/chat'
     route.fullPath = route.path
     currentRoute.value = route
   }
 
   const router = {
     isReady: vi.fn().mockResolvedValue(undefined),
-    replace: vi.fn().mockImplementation(async ({ name }: { name: 'chat' | 'welcome' }) => {
-      setRoute(name)
-    }),
+    replace: vi
+      .fn()
+      .mockImplementation(async ({ name }: { name: 'chat' | 'welcome' | 'ldap-login' }) => {
+        setRoute(name)
+      }),
     push: vi.fn().mockImplementation(async ({ name }: { name: string }) => {
-      if (name === 'chat' || name === 'welcome') {
+      if (name === 'chat' || name === 'welcome' || name === 'ldap-login') {
         setRoute(name)
       }
     }),
@@ -465,9 +470,25 @@ const mountApp = async (options?: {
 afterEach(() => {
   window.sessionStorage.removeItem(DEV_WELCOME_OVERRIDE_KEY)
   window.sessionStorage.removeItem(GUIDED_ONBOARDING_RESUME_STORAGE_KEY)
+  window.sessionStorage.removeItem(LDAP_LOGIN_SESSION_KEY)
+  vi.unstubAllEnvs()
 })
 
 describe('App startup welcome flow', () => {
+  it('routes to ldap login before normal startup when a packaged LDAP URL is configured', async () => {
+    vi.stubEnv('VITE_LDAP_LOGIN_URL', 'https://login.example.com/ldap')
+
+    const { router, configPresenter, onboardingClient, route } = await mountApp({
+      initComplete: true,
+      routeName: 'chat'
+    })
+
+    expect(router.replace).toHaveBeenCalledWith({ name: 'ldap-login' })
+    expect(route.name).toBe('ldap-login')
+    expect(configPresenter.getSetting).not.toHaveBeenCalled()
+    expect(onboardingClient.getState).not.toHaveBeenCalled()
+  })
+
   it('routes to welcome when init is incomplete', async () => {
     const { router, configPresenter, onboardingClient } = await mountApp({
       initComplete: false,

@@ -44,6 +44,7 @@ import {
 import type { GuidedOnboardingStepId } from '@shared/contracts/routes'
 import type { DatabaseRepairSuggestedPayload } from '@shared/presenter'
 import { createWindowClient } from '@api/WindowClient'
+import { LDAP_LOGIN_COMPLETED_EVENT, shouldShowLdapLogin } from '@/lib/ldapLogin'
 
 const DEV_WELCOME_OVERRIDE_KEY = '__deepchat_dev_force_welcome'
 
@@ -75,6 +76,7 @@ const { t } = useI18n()
 const toasterTheme = computed(() =>
   themeStore.themeMode === 'system' ? (themeStore.isDark ? 'dark' : 'light') : themeStore.themeMode
 )
+const isLdapLoginRoute = computed(() => route.name === 'ldap-login')
 // Error notification queue and currently displayed error
 const errorQueue = ref<Array<{ id: string; title: string; message: string; type: string }>>([])
 const currentErrorId = ref<string | null>(null)
@@ -210,6 +212,18 @@ const ensureStartupWelcomeState = async () => {
 
     const currentRoute = router.currentRoute.value
     const isWelcomeRoute = currentRoute.name === 'welcome' || currentRoute.path === '/welcome'
+    const isLdapRoute = currentRoute.name === 'ldap-login' || currentRoute.path === '/ldap-login'
+
+    if (shouldShowLdapLogin()) {
+      if (!isLdapRoute) {
+        await router.replace({ name: 'ldap-login' })
+      }
+      return
+    }
+
+    if (isLdapRoute) {
+      await router.replace({ name: 'chat' })
+    }
 
     if (isDevWelcomeOverrideEnabled()) {
       if (!isWelcomeRoute) {
@@ -364,6 +378,10 @@ const handleDatabaseRepairSuggested = (payload: unknown) => {
   })
 }
 
+const handleLdapLoginCompleted = () => {
+  void ensureStartupWelcomeState()
+}
+
 const handleStartGuidedOnboardingDev = async () => {
   if (!import.meta.env.DEV) {
     return
@@ -514,6 +532,7 @@ watch(
 
 onMounted(() => {
   window.addEventListener('keydown', handleEscKey)
+  window.addEventListener(LDAP_LOGIN_COMPLETED_EVENT, handleLdapLoginCompleted)
   window.addEventListener(
     GUIDED_ONBOARDING_RESUME_REQUESTED_EVENT,
     handleGuidedOnboardingResumeRequested as EventListener
@@ -571,6 +590,7 @@ onBeforeUnmount(() => {
   }
 
   window.removeEventListener('keydown', handleEscKey)
+  window.removeEventListener(LDAP_LOGIN_COMPLETED_EVENT, handleLdapLoginCompleted)
   window.removeEventListener(
     GUIDED_ONBOARDING_RESUME_REQUESTED_EVENT,
     handleGuidedOnboardingResumeRequested as EventListener
@@ -589,12 +609,17 @@ onBeforeUnmount(() => {
     <AppBar />
     <div class="flex flex-row h-0 grow relative overflow-hidden px-px py-px" :dir="langStore.dir">
       <div class="flex flex-row w-full h-full">
-        <WindowSideBar></WindowSideBar>
+        <WindowSideBar v-if="!isLdapLoginRoute"></WindowSideBar>
 
         <!-- Main content area -->
         <div
           data-testid="app-main"
-          class="flex h-full min-h-0 flex-1 min-w-0 flex-col overflow-hidden rounded-tl-xl border-l border-t border-black/20 bg-background dark:border-white/10"
+          class="flex h-full min-h-0 flex-1 min-w-0 flex-col overflow-hidden bg-background"
+          :class="
+            isLdapLoginRoute
+              ? ''
+              : 'rounded-tl-xl border-l border-t border-black/20 dark:border-white/10'
+          "
         >
           <div class="min-h-0 flex-1">
             <RouterView v-if="isStartupRouteReady" />

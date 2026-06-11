@@ -17,6 +17,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/ldap-login',
+      name: 'ldap-login',
+      component: () => import('@/pages/LdapLoginPage.vue'),
+      meta: {
+        titleKey: 'routes.ldapLogin',
+        icon: 'lucide:building-2'
+      }
+    },
+    {
       path: '/welcome',
       name: 'welcome',
       component: () => import('@/pages/WelcomePage.vue'),

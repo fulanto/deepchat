@@ -16,6 +16,7 @@ import components from './components.json'
 import about from './about.json'
 import promptSetting from './promptSetting.json'
 import plan from './plan.json'
+import ldapLogin from './ldapLogin.json'
 
 // 单独的顶层键
 const others = {
@@ -51,5 +52,6 @@ export default {
   about,
   promptSetting,
   plan,
+  ldapLogin,
   ...others
 }

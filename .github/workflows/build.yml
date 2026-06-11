@@ -13,11 +13,16 @@ on:
           - windows
           - linux
           - mac
+      ldap_login_url:
+        description: '可选 LDAP 登录地址；留空时读取仓库变量/密钥或关闭 LDAP 登录入口'
+        required: false
+        type: string
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   RTK_INSTALL_GITHUB_TOKEN: ${{ secrets.RTK_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
   RTK_INSTALL_GITHUB_TOKEN_SOURCE: ${{ secrets.RTK_GITHUB_TOKEN != '' && 'RTK_GITHUB_TOKEN' || 'GITHUB_TOKEN' }}
+  VITE_LDAP_LOGIN_URL: ${{ github.event.inputs.ldap_login_url || vars.DEEPCHAT_LDAP_LOGIN_URL || secrets.DEEPCHAT_LDAP_LOGIN_URL }}
 
 jobs:
   build-windows:
@@ -166,6 +171,8 @@ jobs:
   build-mac:
     if: github.event.inputs.platform == 'all' || contains(github.event.inputs.platform, 'mac')
     runs-on: macos-15
+    env:
+      MAC_SIGNING_ENABLED: ${{ secrets.DEEPCHAT_CSC_LINK != '' && 'true' || 'false' }}
     strategy:
       matrix:
         arch: [x64, arm64]
@@ -210,7 +217,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ env.RTK_INSTALL_GITHUB_TOKEN }}
 
-      - name: Build Mac
+      - name: Build Mac (signed)
+        if: env.MAC_SIGNING_ENABLED == 'true'
         run: |
           pnpm run build
           pnpm run plugin:cua:build:mac:${{ matrix.arch }}
@@ -224,6 +232,22 @@ jobs:
           DEEPCHAT_APPLE_NOTARY_TEAM_ID: ${{ secrets.DEEPCHAT_APPLE_NOTARY_TEAM_ID }}
           DEEPCHAT_APPLE_NOTARY_PASSWORD: ${{ secrets.DEEPCHAT_APPLE_NOTARY_PASSWORD }}
           build_for_release: '2'
+          VITE_GITHUB_CLIENT_ID: ${{ secrets.DC_GITHUB_CLIENT_ID }}
+          VITE_GITHUB_CLIENT_SECRET: ${{ secrets.DC_GITHUB_CLIENT_SECRET }}
+          VITE_GITHUB_REDIRECT_URI: ${{ secrets.DC_GITHUB_REDIRECT_URI }}
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          VITE_PROVIDER_DB_URL: ${{ secrets.CDN_PROVIDER_DB_URL }}
+
+      - name: Build Mac (unsigned)
+        if: env.MAC_SIGNING_ENABLED != 'true'
+        run: |
+          pnpm run build
+          pnpm run plugin:cua:build:mac:${{ matrix.arch }}
+          pnpm run plugin:bundle -- --name cua --platform darwin --arch ${{ matrix.arch }}
+          pnpm run plugin:bundle -- --name feishu --platform darwin --arch ${{ matrix.arch }}
+          pnpm exec electron-builder --mac --${{ matrix.arch }} --publish=never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
           VITE_GITHUB_CLIENT_ID: ${{ secrets.DC_GITHUB_CLIENT_ID }}
           VITE_GITHUB_CLIENT_SECRET: ${{ secrets.DC_GITHUB_CLIENT_SECRET }}
           VITE_GITHUB_REDIRECT_URI: ${{ secrets.DC_GITHUB_REDIRECT_URI }}
