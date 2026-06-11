@@ -37,6 +37,12 @@ VITE_LDAP_LOGIN_URL=https://login.example.com/ldap
 如果只想某一次手动构建使用不同地址，可以在手动运行 workflow 时填写
 `ldap_login_url` input；它会覆盖仓库 variable/secret。
 
+## macOS fork 构建注意
+
+`Build Application` workflow 的 macOS job 支持无 Developer ID 证书的 fork/普通构建：
+未配置 `DEEPCHAT_CSC_LINK` 时不会启用 CUA helper release 签名，会走 ad-hoc 签名。
+真正发布用的 `Release` workflow 仍然需要配置 macOS 签名/公证 secrets。
+
 ## Release workflow 行为
 
 - `workflow_dispatch` 发布：可以直接填写 `ldap_login_url`，也可以留空读取
