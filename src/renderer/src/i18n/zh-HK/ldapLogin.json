@@ -1,0 +1,13 @@
+{
+  "eyebrow": "企业统一认证",
+  "title": "登录 DeepChat",
+  "description": "请使用组织提供的 LDAP 账号完成统一认证。登录页将通过系统浏览器打开，认证后即可继续使用 DeepChat。",
+  "actions": {
+    "signIn": "使用 LDAP 登录"
+  },
+  "errors": {
+    "missingUrl": "未配置 LDAP 登录地址，请联系管理员。",
+    "openFailed": "无法打开 LDAP 登录页，请稍后重试或联系管理员。"
+  },
+  "footer": "LDAP 登录地址由打包环境变量 VITE_LDAP_LOGIN_URL 统一指定。"
+}

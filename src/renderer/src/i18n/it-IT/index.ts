@@ -18,6 +18,7 @@ import contextMenu from './contextMenu.json'
 import promptSetting from './promptSetting.json'
 import traceDialog from './traceDialog.json'
 import plan from './plan.json'
+import ldapLogin from './ldapLogin.json'
 
 // Chiavi top-level separate
 const others = {
@@ -55,5 +56,6 @@ export default {
   promptSetting,
   traceDialog,
   plan,
+  ldapLogin,
   ...others
 }

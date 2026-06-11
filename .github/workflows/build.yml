@@ -13,11 +13,16 @@ on:
           - windows
           - linux
           - mac
+      ldap_login_url:
+        description: '可选 LDAP 登录地址；留空时读取仓库变量/密钥或关闭 LDAP 登录入口'
+        required: false
+        type: string
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   RTK_INSTALL_GITHUB_TOKEN: ${{ secrets.RTK_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
   RTK_INSTALL_GITHUB_TOKEN_SOURCE: ${{ secrets.RTK_GITHUB_TOKEN != '' && 'RTK_GITHUB_TOKEN' || 'GITHUB_TOKEN' }}
+  VITE_LDAP_LOGIN_URL: ${{ github.event.inputs.ldap_login_url || vars.DEEPCHAT_LDAP_LOGIN_URL || secrets.DEEPCHAT_LDAP_LOGIN_URL }}
 
 jobs:
   build-windows:
