@@ -3,7 +3,8 @@
   "title": "登录 DeepChat",
   "description": "请使用组织提供的 LDAP 账号完成统一认证。登录页将通过系统浏览器打开，认证后即可继续使用 DeepChat。",
   "actions": {
-    "signIn": "使用 LDAP 登录"
+    "signIn": "使用 LDAP 登录",
+    "opening": "正在打开..."
   },
   "errors": {
     "missingUrl": "未配置 LDAP 登录地址，请联系管理员。",

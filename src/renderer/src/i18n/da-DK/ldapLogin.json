@@ -3,7 +3,8 @@
   "title": "Sign in to DeepChat",
   "description": "Use your organization LDAP account to complete unified authentication. The login page opens in your system browser, then DeepChat continues after the sign-in starts.",
   "actions": {
-    "signIn": "Sign in with LDAP"
+    "signIn": "Sign in with LDAP",
+    "opening": "Opening..."
   },
   "errors": {
     "missingUrl": "LDAP login URL is not configured. Contact your administrator.",
