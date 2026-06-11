@@ -40,7 +40,7 @@ VITE_LDAP_LOGIN_URL=https://login.example.com/ldap
 ## macOS fork 构建注意
 
 `Build Application` workflow 的 macOS job 支持无 Developer ID 证书的 fork/普通构建：
-未配置 `DEEPCHAT_CSC_LINK` 时不会启用 CUA helper release 签名，会走 ad-hoc 签名。
+未配置 `DEEPCHAT_CSC_LINK` 时不会把 `CSC_LINK` 传给 electron-builder，CUA helper 会走 ad-hoc 签名，app 打包也会禁用签名自动发现。
 真正发布用的 `Release` workflow 仍然需要配置 macOS 签名/公证 secrets。
 
 ## Release workflow 行为
